@@ -1,197 +1,177 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ciocnirea Plastică - Simulare</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 50px;
-            text-align: center;
-            margin: 20px;
-            background-color: #a9f1df; 
-        }
-        canvas {
-            border: 1px solid black;
-            margin-top: 20px;
-            background-color: #f4f4f4;
-        }
-        #controls {
-            margin-top: 20px;
-        }
-        input, button {
-            margin: 5px;
-            padding: 10px;
-            font-size: 50px;
-        }
-        .result {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulare Ciocnire Plastică</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      background-color: #a9f1df;
+    }
+    canvas {
+      border: 1px solid black;
+      margin-top: 20px;
+      background-color: #f4f4f4;
+    }
+    .formulas {
+      font-size: 20px;
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>Simularea Ciocnirii Plăstice</h1>
+  <h1>Simulare Ciocnire Plastică</h1>
 
-    <div id="controls">
-        <label for="masa1">Masa 1 (kg):</label>
-        <input type="number" id="masa1" value="1">
-        <br>
-        <label for="viteza1">Viteza 1 (m/s):</label>
-        <input type="number" id="viteza1" value="5">
-        <br>
-        <label for="masa2">Masa 2 (kg):</label>
-        <input type="number" id="masa2" value="2">
-        <br>
-        <label for="viteza2">Viteza 2 (m/s):</label>
-        <input type="number" id="viteza2" value="-3">
-        <br><br>
-        <button id="calcButton">Calculează Ciocnirea</button>
-        <button id="drawButton">Desenează Ciocnirea</button>
-    </div>
+  <div id="controls">
+    <label for="masa1">Masa 1 (kg):</label>
+    <input type="number" id="masa1" value="1">
+    <br>
+    <label for="viteza1">Viteza 1 (m/s):</label>
+    <input type="number" id="viteza1" value="5">
+    <br>
+    <label for="masa2">Masa 2 (kg):</label>
+    <input type="number" id="masa2" value="2">
+    <br>
+    <label for="viteza2">Viteza 2 (m/s):</label>
+    <input type="number" id="viteza2" value="-3">
+    <br><br>
+    <button id="calcButton">Calculează Ciocnirea</button>
+    <button id="drawButton" disabled>Desenează Ciocnirea</button>
+  </div>
 
-    <div class="result">
-        <p id="energieBefore"></p>
-        <p id="energieAfter"></p>
-        <p id="vitezaFinala"></p>
-        <p id="calduraDegajata"></p>
-    </div>
+  <div class="result">
+    <p id="energieBefore"></p>
+    <p id="energieAfter"></p>
+    <p id="vitezaFinala"></p>
+    <p id="calduraDegajata"></p>
+  </div>
 
-    <canvas id="ciocnireCanvas" width="600" height="300"></canvas>
+  <div class="formulas">
+    <h2>Formulele de Calcul</h2>
+    <p><strong>1. Viteza finală:</strong> v<sub>f</sub> = (m<sub>1</sub> × v<sub>1</sub> + m<sub>2</sub> × v<sub>2</sub>) / (m<sub>1</sub> + m<sub>2</sub>)</p>
+    <p><strong>2. Energia cinetică:</strong> E = ½ × m × v²</p>
+    <p><strong>3. Căldura degajată:</strong> Q = E<sub>finală</sub> − E<sub>initială</sub></p>
+  </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const calcButton = document.getElementById("calcButton");
-            const drawButton = document.getElementById("drawButton");
-            const canvas = document.getElementById("ciocnireCanvas");
-            const ctx = canvas.getContext("2d");
+  <canvas id="ciocnireCanvas" width="600" height="300"></canvas>
 
-            // Eveniment pentru butonul "Calculează Ciocnirea"
-            calcButton.addEventListener("click", function() {
-                let masa1 = parseFloat(document.getElementById("masa1").value);
-                let viteza1 = parseFloat(document.getElementById("viteza1").value);
-                let masa2 = parseFloat(document.getElementById("masa2").value);
-                let viteza2 = parseFloat(document.getElementById("viteza2").value);
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const calcButton = document.getElementById("calcButton");
+      const drawButton = document.getElementById("drawButton");
+      const canvas = document.getElementById("ciocnireCanvas");
+      const ctx = canvas.getContext("2d");
 
-                if (isNaN(masa1) || isNaN(viteza1) || isNaN(masa2) || isNaN(viteza2)) {
-                    alert("Vă rugăm să completați toate câmpurile.");
-                    return;
-                }
+      let vitezaFinala;
+      let u = 0.5; // Factor de scalare pentru viteză în simulare
 
-                // Calcul energie înainte de ciocnire
-                let energieBefore1 = 0.5 * masa1 * Math.pow(viteza1, 2);
-                let energieBefore2 = 0.5 * masa2 * Math.pow(viteza2, 2);
-                let energieBeforeTotala = energieBefore1 + energieBefore2;
+      calcButton.addEventListener("click", function() {
+        let masa1 = parseFloat(document.getElementById("masa1").value);
+        let viteza1 = parseFloat(document.getElementById("viteza1").value);
+        let masa2 = parseFloat(document.getElementById("masa2").value);
+        let viteza2 = parseFloat(document.getElementById("viteza2").value);
 
-                // Calcul viteza finală
-                let vitezaFinala = (masa1 * viteza1 + masa2 * viteza2) / (masa1 + masa2);
+        if (isNaN(masa1) || isNaN(viteza1) || isNaN(masa2) || isNaN(viteza2)) {
+          alert("Vă rugăm să completați toate câmpurile.");
+          return;
+        }
 
-                // Calcul energie după ciocnire
-                let energieAfter = 0.5 * (masa1 + masa2) * Math.pow(vitezaFinala, 2);
+        // Calcul energie înainte de ciocnire
+        let energieBefore1 = 0.5 * masa1 * Math.pow(viteza1, 2);
+        let energieBefore2 = 0.5 * masa2 * Math.pow(viteza2, 2);
+        let energieBeforeTotala = energieBefore1 + energieBefore2;
 
-                // Calcul căldura degajată
-                let calduraDegajata = energieBeforeTotala - energieAfter;
+        // Calcul viteza finală
+        vitezaFinala = (masa1 * viteza1 + masa2 * viteza2) / (masa1 + masa2);
 
-                // Afișăm rezultatele
-                document.getElementById("energieBefore").innerText = "Energia totală înainte de ciocnire: " + energieBeforeTotala.toFixed(2) + " J";
-                document.getElementById("energieAfter").innerText = "Energia totală după ciocnire: " + energieAfter.toFixed(2) + " J";
-                document.getElementById("vitezaFinala").innerText = "Viteza finală după ciocnire: " + vitezaFinala.toFixed(2) + " m/s";
-                document.getElementById("calduraDegajata").innerText = "Căldura degajată: " + calduraDegajata.toFixed(2) + " J";
-            });
+        // Calcul energie după ciocnire
+        let energieAfter = 0.5 * (masa1 + masa2) * Math.pow(vitezaFinala, 2);
 
-            // Eveniment pentru butonul "Desenează Ciocnirea"
-            drawButton.addEventListener("click", function() {
-                let masa1 = parseFloat(document.getElementById("masa1").value);
-                let viteza1 = parseFloat(document.getElementById("viteza1").value);
-                let masa2 = parseFloat(document.getElementById("masa2").value);
-                let viteza2 = parseFloat(document.getElementById("viteza2").value);
+        // Calcul căldura degajată
+        let calduraDegajata = energieBeforeTotala - energieAfter;
 
-                if (isNaN(masa1) || isNaN(viteza1) || isNaN(masa2) || isNaN(viteza2)) {
-                    alert("Vă rugăm să completați toate câmpurile.");
-                    return;
-                }
+        // Afișăm rezultatele
+        document.getElementById("energieBefore").innerText = "Energia înainte: " + energieBeforeTotala.toFixed(2) + " J";
+        document.getElementById("energieAfter").innerText = "Energia după: " + energieAfter.toFixed(2) + " J";
+        document.getElementById("vitezaFinala").innerText = "Viteza finală: " + vitezaFinala.toFixed(2) + " m/s";
+        document.getElementById("calduraDegajata").innerText = "Căldura degajată: " + calduraDegajata.toFixed(2) + " J";
 
-                // Setăm pozițiile inițiale ale obiectelor
-                let x1 = 150, x2 = 350;
-                let speed1 = viteza1;
-                let speed2 = viteza2;
+        drawButton.disabled = false;
+      });
 
-                // Culoarea verde pentru corpul după ciocnire
-                let mergedColor = "green";  
+      drawButton.addEventListener("click", function() {
+        let masa1 = parseFloat(document.getElementById("masa1").value);
+        let viteza1 = parseFloat(document.getElementById("viteza1").value);
+        let masa2 = parseFloat(document.getElementById("masa2").value);
+        let viteza2 = parseFloat(document.getElementById("viteza2").value);
 
-                // Calculăm viteza finală după ciocnire
-                let vitezaFinala = (masa1 * viteza1 + masa2 * viteza2) / (masa1 + masa2);
+        let x1 = 100;
+        let x2 = canvas.width - 100;
 
-                // Funcția de animație
-                function animate() {
-                    // Curăță canvasul
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let speed1 = viteza1 * u;
+        let speed2 = viteza2 * u;
 
-                    // Desenăm primul corp (albastru)
-                    ctx.fillStyle = "blue";
-                    ctx.beginPath();
-                    ctx.arc(x1, 150, 30, 0, Math.PI * 2, true);
-                    ctx.fill();
+        let mergedColor = "green";
 
-                    // Desenăm al doilea corp (galben)
-                    ctx.fillStyle = "yellow";
-                    ctx.beginPath();
-                    ctx.arc(x2, 150, 30, 0, Math.PI * 2, true);
-                    ctx.fill();
+        function animate() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    // Mișcăm obiectele
-                    x1 += speed1;
-                    x2 += speed2;
+          ctx.fillStyle = "blue";
+          ctx.beginPath();
+          ctx.arc(x1, 150, 30, 0, Math.PI * 2, true);
+          ctx.fill();
 
-                    // Verificăm coliziunea
-                    if (Math.abs(x1 - x2) <= 60) { // coliziune (60 este suma razelor cercurilor)
-                        // Schimbăm culoarea la verde după ciocnire
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);  // Curățăm pentru a desena un singur corp
-                        ctx.fillStyle = mergedColor;
-                        ctx.beginPath();
-                        ctx.arc((x1 + x2) / 2, 150, 60, 0, Math.PI * 2, true); // Corpul fuzionat
-                        ctx.fill();
+          ctx.fillStyle = "yellow";
+          ctx.beginPath();
+          ctx.arc(x2, 150, 30, 0, Math.PI * 2, true);
+          ctx.fill();
 
-                        // Viteza finală
-                        speed1 = vitezaFinala;
-                        speed2 = vitezaFinala;
+          x1 += speed1;
+          x2 += speed2;
 
-                        // Continuăm mișcarea corpului fuzionat
-                        animateMerged(speed1);
-                        return;
-                    }
+          if (Math.abs(x1 - x2) <= 60) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = mergedColor;
+            ctx.beginPath();
+            ctx.arc((x1 + x2) / 2, 150, 60, 0, Math.PI * 2, true);
+            ctx.fill();
 
-                    // Continuăm animația
-                    requestAnimationFrame(animate);
-                }
+            speed1 = vitezaFinala * u;
+            speed2 = vitezaFinala * u;
+            animateMerged(speed1, (x1 + x2) / 2);
+            return;
+          }
 
-                // Funcție pentru mișcarea corpului fuzionat
-                function animateMerged(speed) {
-                    let xMerged = (x1 + x2) / 2;
-                    function moveMerged() {
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);  // Curățăm pentru a desena corpul fuzionat
-                        ctx.fillStyle = mergedColor;
-                        ctx.beginPath();
-                        ctx.arc(xMerged, 150, 60, 0, Math.PI * 2, true); // Corpul fuzionat
-                        ctx.fill();
+          requestAnimationFrame(animate);
+        }
 
-                        // Mișcăm corpul fuzionat
-                        xMerged += speed;
+        function animateMerged(speed, xMergedStart) {
+          let xMerged = xMergedStart;
+          function moveMerged() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = mergedColor;
+            ctx.beginPath();
+            ctx.arc(xMerged, 150, 60, 0, Math.PI * 2, true);
+            ctx.fill();
 
-                        // Continuăm animația
-                        requestAnimationFrame(moveMerged);
-                    }
+            xMerged += speed;
+            requestAnimationFrame(moveMerged);
+          }
+          moveMerged();
+        }
 
-                    // Pornim mișcarea
-                    moveMerged();
-                }
-
-                // Pornim animația
-                animate();
-            });
-        });
-    </script>
+        animate();
+      });
+    });
+  </script>
 
 </body>
 </html>
